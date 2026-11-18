@@ -1,0 +1,2449 @@
+<!DOCTYPE html>
+<!--
+THESIS: An interactive cartographic atlas of AI agent architectures where patterns, memory strata, protocols, multi-agent topologies, and failure basins live on a navigable topographic survey map rather than a static list or card grid.
+OWN-WORLD: Swiss Topographic Survey — cool limestone drafting paper (#F1F4F7), crisp white survey panels (#FFFFFF) with 1px slate rules (#C8D3DF) and offset shadows, cobalt (#0F4C81), contour pine (#146C53), brass ochre (#8A4B08), beacon vermilion (#B42318), and basalt (#334155).
+STORY: Visitors explore 20 interconnected agentic concepts across 5 territories, inspect mechanics/failure modes/pseudocode, compare any two patterns, and step through live animated execution routes.
+FIRST VIEWPORT: Full-bleed interactive SVG/HTML topographic map with 5 contour territories, 20 nodes, directed routes, top search/territory bar, minimap, and bottom Execution Route Tracer.
+FORM: Spatial Topographic Survey Atlas with synchronized Execution Horizon (Candidate 4: Architectural/Topographic Survey + Staging 2: linked plan & route profile; seed 1b0c255c).
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atlas of Agentic Systems</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'><rect x='1' y='1' width='26' height='26' rx='5' fill='%23F1F4F7' stroke='%23111820' stroke-width='1.5'/><path d='M14 5L17 11L23 14L17 17L14 23L11 17L5 14L11 11L14 5Z' fill='%230F4C81'/></svg>" />
+  <style>
+    :root {
+      /* iOS System Light Palette */
+      --bg-paper: #F2F2F7;
+      --bg-grid: rgba(60, 60, 67, 0.10);
+      --surface: #FFFFFF;
+      --surface-glass: rgba(255, 255, 255, 0.84);
+      --surface-muted: #F2F2F7;
+      --surface-fill: rgba(118, 118, 128, 0.12);
+      --border: rgba(60, 60, 67, 0.14);
+      --border-strong: rgba(60, 60, 67, 0.28);
+      --ink: #000000;
+      --ink-secondary: #3C3C43;
+      --ink-muted: #6C6C70;
+      --shadow-offset: 0 2px 12px rgba(0, 0, 0, 0.06), 0 12px 32px rgba(0, 0, 0, 0.08);
+      --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 6px 18px rgba(0, 0, 0, 0.06);
+
+      /* iOS Semantic Territory Accents (accessible >= 4.5:1 on light tints) */
+      --t-reasoning: #0066D6;
+      --t-reasoning-bg: rgba(0, 122, 255, 0.11);
+      --t-memory: #147A4B;
+      --t-memory-bg: rgba(52, 199, 89, 0.13);
+      --t-tools: #A84B00;
+      --t-tools-bg: rgba(255, 149, 0, 0.14);
+      --t-multi: #C92A2A;
+      --t-multi-bg: rgba(255, 59, 48, 0.12);
+      --t-guardrails: #48484A;
+      --t-guardrails-bg: rgba(142, 142, 147, 0.14);
+
+      --ios-blue: #007AFF;
+      --signal: #FF3B30;
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --ease-ios: cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: var(--bg-paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Layout Shell */
+    .atlas-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* Top iOS Navigation Bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 18px;
+      background: var(--surface-glass);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 30;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-right: 4px;
+    }
+
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1 1 200px;
+      max-width: 290px;
+      min-width: 160px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--ink-muted);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 7px 32px 7px 32px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: var(--surface-fill);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+      transition: background 0.18s var(--ease-ios), border-color 0.18s var(--ease-ios);
+    }
+
+    .search-input::placeholder {
+      color: var(--ink-muted);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--ios-blue);
+      background: var(--surface);
+      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.16);
+    }
+
+    .search-kbd {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 0 5px;
+      pointer-events: none;
+    }
+
+    .filter-strip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 2px 0;
+    }
+    .filter-strip::-webkit-scrollbar { display: none; }
+
+    .filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink-secondary);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.18s var(--ease-ios), border-color 0.18s var(--ease-ios), color 0.18s var(--ease-ios), transform 0.12s ease;
+    }
+
+    .filter-pill:hover {
+      background: #E5E5EA;
+      color: var(--ink);
+    }
+
+    .filter-pill:active {
+      transform: scale(0.97);
+    }
+
+    .filter-pill[aria-pressed="true"] {
+      background: var(--ios-blue);
+      border-color: var(--ios-blue);
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+
+    .filter-pill[aria-pressed="true"] .pill-dot {
+      background: #FFFFFF !important;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 13px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ios-blue);
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.18s var(--ease-ios), transform 0.12s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: #E5E5EA;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    .btn:disabled {
+      opacity: 0.42;
+      color: var(--ink-muted);
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--ios-blue);
+      border-color: var(--ios-blue);
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #0066D6;
+      border-color: #0066D6;
+    }
+
+    .btn-active {
+      background: var(--t-multi-bg);
+      border-color: var(--t-multi);
+      color: var(--t-multi);
+    }
+
+    /* Main Workspace */
+    .workspace {
+      position: relative;
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Interactive Map Viewport */
+    .map-viewport {
+      position: relative;
+      flex: 1;
+      overflow: hidden;
+      background-color: var(--bg-paper);
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .map-viewport.is-panning {
+      cursor: grabbing;
+    }
+
+    .map-stage {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1800px;
+      height: 1120px;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    .map-svg {
+      position: absolute;
+      inset: 0;
+      width: 1800px;
+      height: 1120px;
+      pointer-events: none;
+    }
+
+    .territory-label {
+      position: absolute;
+      pointer-events: none;
+      font-weight: 700;
+      font-size: 12.5px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .territory-coord {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border);
+      color: var(--ink-secondary);
+    }
+
+    /* Edge / Route SVG styling */
+    .edge-path {
+      fill: none;
+      stroke: #AEAEB2;
+      stroke-width: 1.75;
+      stroke-dasharray: 4 4;
+      transition: stroke 0.2s ease, opacity 0.2s ease;
+    }
+
+    .edge-path.is-connected {
+      stroke: var(--ios-blue);
+      stroke-width: 2.25;
+      stroke-dasharray: none;
+    }
+
+    .edge-path.is-dimmed {
+      opacity: 0.16;
+    }
+
+    .edge-path.is-traced {
+      stroke: var(--signal);
+      stroke-width: 3;
+      stroke-dasharray: none;
+    }
+
+    .edge-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      fill: var(--ink-secondary);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .edge-label.is-visible {
+      opacity: 1;
+    }
+
+    /* Map Nodes — iOS Continuous Rounded Cards */
+    .atlas-node {
+      position: absolute;
+      width: 206px;
+      padding: 11px 13px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-card);
+      cursor: pointer;
+      transition: transform 0.2s var(--ease-ios), border-color 0.18s ease, box-shadow 0.2s var(--ease-ios), opacity 0.2s ease;
+      text-align: left;
+      font-family: var(--font-sans);
+    }
+
+    .atlas-node:hover {
+      transform: translateY(-2px) scale(1.01);
+      border-color: var(--border-strong);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 12px 28px rgba(0, 0, 0, 0.10);
+      z-index: 5;
+    }
+
+    .atlas-node:focus-visible {
+      outline: 2px solid var(--ios-blue);
+      outline-offset: 2px;
+      z-index: 6;
+    }
+
+    .atlas-node.is-selected {
+      border: 2px solid var(--ios-blue);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12), 0 14px 32px rgba(0, 0, 0, 0.08);
+      z-index: 8;
+    }
+
+    .atlas-node.is-traced {
+      border: 2px solid var(--signal);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12), 0 14px 32px rgba(0, 0, 0, 0.10);
+      z-index: 9;
+    }
+
+    .atlas-node.is-dimmed {
+      opacity: 0.22;
+    }
+
+    .atlas-node.is-compared {
+      border: 2px solid var(--t-multi);
+    }
+
+    .node-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 5px;
+    }
+
+    .node-coord {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--ink-muted);
+    }
+
+    .node-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 999px;
+      letter-spacing: 0.01em;
+    }
+
+    .node-title {
+      margin: 0 0 3px 0;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .node-sub {
+      margin: 0;
+      font-size: 12px;
+      color: var(--ink-muted);
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Map HUD Controls — iOS Floating Capsule Stack */
+    .map-controls {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 4px;
+      background: var(--surface-glass);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow-offset);
+      z-index: 15;
+    }
+
+    .hud-btn {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      color: var(--ios-blue);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .hud-btn:hover {
+      background: var(--surface-fill);
+    }
+
+    .zoom-readout {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      text-align: center;
+      padding: 2px 0;
+      color: var(--ink-muted);
+    }
+
+    /* Minimap */
+    .minimap {
+      position: absolute;
+      bottom: 92px;
+      left: 14px;
+      width: 164px;
+      height: 102px;
+      background: var(--surface-glass);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow-offset);
+      z-index: 15;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .minimap-viewport {
+      position: absolute;
+      border: 1.5px solid var(--ios-blue);
+      background: rgba(0, 122, 255, 0.12);
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    /* Compass & Scale Bar */
+    .compass-scale {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 12px;
+      background: var(--surface-glass);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow-card);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    /* Bottom Execution Route Tracer — iOS Floating Media Dock */
+    .tracer-dock {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(940px, calc(100% - 28px));
+      background: var(--surface-glass);
+      backdrop-filter: saturate(180%) blur(24px);
+      -webkit-backdrop-filter: saturate(180%) blur(24px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow-offset);
+      z-index: 20;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tracer-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tracer-select {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tracer-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tracer-steps {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .tracer-steps::-webkit-scrollbar { display: none; }
+
+    .step-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink-secondary);
+      font-size: 11.5px;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .step-chip.is-active {
+      background: var(--signal);
+      border-color: var(--signal);
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+
+    .step-num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      opacity: 0.85;
+    }
+
+    .tracer-caption {
+      font-size: 12.5px;
+      color: var(--ink-secondary);
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .tracer-caption strong {
+      color: var(--ink);
+    }
+
+    /* Right Inspector Drawer — iOS Grouped Sheet */
+    .inspector {
+      width: 400px;
+      max-width: 100vw;
+      background: var(--bg-paper);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 25;
+      flex-shrink: 0;
+    }
+
+    .inspector.is-closed {
+      display: none;
+    }
+
+    .inspector-header {
+      padding: 14px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .inspector-title {
+      margin: 5px 0 0 0;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+    }
+
+    .inspector-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .meta-cell {
+      padding: 9px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .meta-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      display: block;
+    }
+
+    .meta-val {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .section-h {
+      margin: 0 0 6px 0;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--ink-muted);
+    }
+
+    .inspector-text {
+      margin: 0;
+      font-size: 13.5px;
+      color: var(--ink);
+      line-height: 1.55;
+      max-width: 65ch;
+      background: var(--surface);
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .bullet-list {
+      margin: 0;
+      padding: 12px 14px 12px 28px;
+      font-size: 13px;
+      color: var(--ink-secondary);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .code-block {
+      position: relative;
+      background: #1C1C1E;
+      color: #F2F2F7;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      line-height: 1.5;
+      overflow-x: auto;
+      margin: 0;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .neighbor-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .neighbor-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ios-blue);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .neighbor-chip:hover {
+      background: var(--t-reasoning-bg);
+      border-color: var(--ios-blue);
+    }
+
+    .inspector-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: var(--surface);
+    }
+
+    /* Compare & Legend Modals — iOS Sheet Dialogs */
+    .overlay-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.36);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: none;
+      place-items: center;
+      z-index: 50;
+      padding: 16px;
+    }
+
+    .overlay-backdrop.is-open {
+      display: grid;
+    }
+
+    .dialog-panel {
+      width: min(760px, 100%);
+      max-height: 86dvh;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .dialog-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dialog-header h2 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .dialog-body {
+      padding: 18px;
+      overflow-y: auto;
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .compare-table th, .compare-table td {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .compare-table th {
+      background: var(--surface-muted);
+      font-weight: 600;
+      width: 24%;
+      color: var(--ink-secondary);
+    }
+
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+    }
+
+    .legend-item {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface-muted);
+    }
+
+    .empty-banner {
+      position: absolute;
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface-glass);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--ink-secondary);
+      box-shadow: var(--shadow-offset);
+      z-index: 18;
+      display: none;
+    }
+
+    .empty-banner.is-visible {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Mobile / Narrow Viewport */
+    @media (max-width: 768px) {
+      .topbar {
+        padding: 8px 12px;
+        gap: 8px;
+      }
+      .brand h1 {
+        font-size: 15.5px;
+      }
+      .search-kbd {
+        display: none;
+      }
+      .compass-scale, .minimap {
+        display: none;
+      }
+      .inspector {
+        position: fixed;
+        inset: auto 0 0 0;
+        width: 100%;
+        height: 70dvh;
+        border-left: none;
+        border-top: 1px solid var(--border);
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.18);
+      }
+      .tracer-dock {
+        width: calc(100% - 16px);
+        bottom: 8px;
+        padding: 10px 12px;
+        border-radius: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="atlas-shell">
+    <!-- Top Command Bar -->
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <rect x="1" y="1" width="26" height="26" rx="5" fill="#F1F4F7" stroke="#111820" stroke-width="1.5"/>
+          <path d="M14 5L17 11L23 14L17 17L14 23L11 17L5 14L11 11L14 5Z" fill="#0F4C81"/>
+          <circle cx="14" cy="14" r="2.2" fill="#FFFFFF"/>
+        </svg>
+        <h1>Atlas of Agentic Systems</h1>
+      </div>
+
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+        </svg>
+        <input id="searchInput" class="search-input" type="search" placeholder="Search patterns, protocols, risks..." aria-label="Search atlas nodes" />
+        <span class="search-kbd" aria-hidden="true">/</span>
+      </div>
+
+      <div id="filterStrip" class="filter-strip" role="group" aria-label="Filter by territory"></div>
+
+      <div class="topbar-actions">
+        <button id="compareOpenBtn" class="btn" type="button" disabled>
+          <span>Compare (<span id="compareCount">0</span>/2)</span>
+        </button>
+        <button id="legendBtn" class="btn" type="button">Survey Key</button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="workspace">
+      <div id="mapViewport" class="map-viewport" tabindex="0" aria-label="Interactive agentic systems map. Drag to pan, scroll to zoom.">
+        <div id="mapStage" class="map-stage">
+          <svg id="mapSvg" class="map-svg" viewBox="0 0 1800 1120" aria-hidden="true"></svg>
+          <div id="territoryLabels"></div>
+          <div id="nodeLayer"></div>
+        </div>
+
+        <!-- Zoom / Fit Controls -->
+        <div class="map-controls" role="group" aria-label="Map zoom controls">
+          <button id="zoomInBtn" class="hud-btn" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+          <div id="zoomReadout" class="zoom-readout">100%</div>
+          <button id="zoomOutBtn" class="hud-btn" type="button" title="Zoom out" aria-label="Zoom out">−</button>
+          <button id="fitBtn" class="hud-btn" type="button" title="Fit entire atlas" aria-label="Fit entire atlas">⌖</button>
+        </div>
+
+        <!-- Compass & Scale -->
+        <div class="compass-scale" aria-hidden="true">
+          <span>N ↑</span>
+          <span>|</span>
+          <span>5 TERRITORIES · 20 NODES</span>
+        </div>
+
+        <!-- Empty Search Banner -->
+        <div id="emptyBanner" class="empty-banner" role="status">
+          <span>No matching agent patterns on this survey.</span>
+          <button id="clearFiltersBtn" class="btn" type="button">Reset filters</button>
+        </div>
+
+        <!-- Minimap -->
+        <div id="minimap" class="minimap" title="Click to jump viewport" aria-hidden="true">
+          <svg id="minimapSvg" width="164" height="102" viewBox="0 0 1800 1120"></svg>
+          <div id="minimapViewport" class="minimap-viewport"></div>
+        </div>
+
+        <!-- Execution Route Tracer -->
+        <section class="tracer-dock" aria-label="Execution Route Tracer">
+          <div class="tracer-top">
+            <label for="routeSelect" class="sr-only" style="position:absolute;left:-9999px;">Select execution route</label>
+            <select id="routeSelect" class="tracer-select"></select>
+            <div class="tracer-controls">
+              <button id="tracePlayBtn" class="btn btn-primary" type="button">Play Trace</button>
+              <button id="tracePrevBtn" class="btn" type="button" aria-label="Previous step">←</button>
+              <button id="traceNextBtn" class="btn" type="button" aria-label="Next step">→</button>
+              <button id="traceStopBtn" class="btn" type="button">Clear</button>
+            </div>
+          </div>
+          <div id="tracerSteps" class="tracer-steps"></div>
+          <div id="tracerCaption" class="tracer-caption">
+            <strong>Route ready:</strong> Press Play Trace or click any step to animate live signal flow across the atlas.
+          </div>
+        </section>
+      </div>
+
+      <!-- Node Inspector Drawer -->
+      <aside id="inspector" class="inspector is-closed" aria-label="Node Inspector">
+        <div class="inspector-header">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="inspBadge" class="node-badge"></span>
+              <span id="inspCoord" class="node-coord"></span>
+            </div>
+            <h2 id="inspTitle" class="inspector-title"></h2>
+          </div>
+          <button id="inspCloseBtn" class="hud-btn" type="button" aria-label="Close inspector">✕</button>
+        </div>
+
+        <div class="inspector-body">
+          <div class="meta-grid">
+            <div class="meta-cell">
+              <span class="meta-label">Latency</span>
+              <span id="inspLatency" class="meta-val"></span>
+            </div>
+            <div class="meta-cell">
+              <span class="meta-label">Token Cost</span>
+              <span id="inspCost" class="meta-val"></span>
+            </div>
+            <div class="meta-cell">
+              <span class="meta-label">Determinism</span>
+              <span id="inspDeterminism" class="meta-val"></span>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="section-h">Mechanism</h3>
+            <p id="inspMechanism" class="inspector-text"></p>
+          </div>
+
+          <div>
+            <h3 class="section-h">Trade-offs & When to Use</h3>
+            <ul id="inspTradeoffs" class="bullet-list"></ul>
+          </div>
+
+          <div>
+            <h3 class="section-h">Failure Modes & Mitigations</h3>
+            <ul id="inspFailures" class="bullet-list"></ul>
+          </div>
+
+          <div>
+            <h3 class="section-h">Canonical Loop / Contract</h3>
+            <div style="position:relative;">
+              <button id="copyCodeBtn" class="copy-btn" type="button">Copy</button>
+              <pre id="inspCode" class="code-block"></pre>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="section-h">Connected Nodes</h3>
+            <div id="inspNeighbors" class="neighbor-list"></div>
+          </div>
+        </div>
+
+        <div class="inspector-footer">
+          <button id="inspCompareBtn" class="btn" type="button">Pin to Compare</button>
+          <button id="inspCenterBtn" class="btn" type="button">Center on Map</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Compare Modal -->
+  <div id="compareModal" class="overlay-backdrop" role="dialog" aria-modal="true" aria-labelledby="compareHeading">
+    <div class="dialog-panel">
+      <div class="dialog-header">
+        <h2 id="compareHeading">Side-by-Side Pattern Comparison</h2>
+        <button id="compareCloseBtn" class="hud-btn" type="button" aria-label="Close comparison">✕</button>
+      </div>
+      <div id="compareBody" class="dialog-body"></div>
+    </div>
+  </div>
+
+  <!-- Survey Key / Legend Modal -->
+  <div id="legendModal" class="overlay-backdrop" role="dialog" aria-modal="true" aria-labelledby="legendHeading">
+    <div class="dialog-panel">
+      <div class="dialog-header">
+        <h2 id="legendHeading">Survey Key & Cartographic Legend</h2>
+        <button id="legendCloseBtn" class="hud-btn" type="button" aria-label="Close legend">✕</button>
+      </div>
+      <div class="dialog-body">
+        <p style="margin-top:0;color:var(--ink-secondary);">
+          This atlas maps 20 foundational concepts of autonomous AI agents across five functional territories.
+          Drag to pan, scroll to zoom, click any node to inspect its loop contract and failure modes, or run an Execution Trace along the bottom dock.
+        </p>
+        <div id="legendGrid" class="legend-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const TERRITORIES = [
+        {
+          id: 'reasoning',
+          name: 'Reasoning & Loops',
+          coord: 'A1–B2',
+          color: '#0066D6',
+          bg: 'rgba(0, 122, 255, 0.10)',
+          description: 'Iterative thought, planning, branching, and self-critique control structures.',
+          contour: { cx: 360, cy: 330, rx: 300, ry: 250 }
+        },
+        {
+          id: 'memory',
+          name: 'Memory & Context Strata',
+          coord: 'C1–D2',
+          color: '#147A4B',
+          bg: 'rgba(52, 199, 89, 0.12)',
+          description: 'Short-term context windows, vector recall, knowledge graphs, and durable checkpoints.',
+          contour: { cx: 900, cy: 255, rx: 285, ry: 210 }
+        },
+        {
+          id: 'tools',
+          name: 'Tools & Protocol Bridges',
+          coord: 'B3–D4',
+          color: '#A84B00',
+          bg: 'rgba(255, 149, 0, 0.12)',
+          description: 'Typed schemas, MCP servers, sandboxed execution, and grounded retrieval.',
+          contour: { cx: 790, cy: 760, rx: 330, ry: 230 }
+        },
+        {
+          id: 'multi',
+          name: 'Multi-Agent Topologies',
+          coord: 'E1–F3',
+          color: '#C92A2A',
+          bg: 'rgba(255, 59, 48, 0.10)',
+          description: 'Supervisors, hierarchical swarms, peer handoffs, and adversarial consensus.',
+          contour: { cx: 1430, cy: 370, rx: 295, ry: 270 }
+        },
+        {
+          id: 'guardrails',
+          name: 'Guardrails & Failure Basins',
+          coord: 'E3–F4',
+          color: '#48484A',
+          bg: 'rgba(142, 142, 147, 0.14)',
+          description: 'Context rot, infinite thrashing, injection surfaces, and human approval gates.',
+          contour: { cx: 1420, cy: 840, rx: 295, ry: 215 }
+        }
+      ];
+
+      const NODES = [
+        // Reasoning & Loops
+        {
+          id: 'react',
+          territory: 'reasoning',
+          coord: 'A1',
+          title: 'ReAct Loop',
+          summary: 'Interleaves reasoning traces with grounded tool actions until a stop condition.',
+          latency: 'Medium',
+          cost: 'Medium',
+          determinism: 'Low–Med',
+          x: 130, y: 175,
+          mechanism: 'Alternates Thought → Action → Observation turns inside a single context stream. Each observation from the environment grounds the next reasoning step, preventing pure hallucination.',
+          tradeoffs: [
+            'Simple to implement and debug; works out of the box with tool-calling LLMs.',
+            'Context grows linearly with every observation; long horizons suffer from context dilution.'
+          ],
+          failures: [
+            'Infinite retry loops when a tool returns ambiguous errors.',
+            'Premature termination or skipping verification after a partial success.'
+          ],
+          code: `while (!done && steps < MAX_STEPS) {\n  const thought = await llm.reason(history);\n  if (thought.finalAnswer) return thought.finalAnswer;\n  const obs = await tools.execute(thought.action);\n  history.push(thought, obs);\n}`
+        },
+        {
+          id: 'cot',
+          territory: 'reasoning',
+          coord: 'A2',
+          title: 'Chain-of-Thought',
+          summary: 'Decomposes problems into intermediate token steps before emitting a final answer.',
+          latency: 'Low–Med',
+          cost: 'Low–Med',
+          determinism: 'Medium',
+          x: 380, y: 135,
+          mechanism: 'Allocates extra inference-time compute by generating explicit intermediate reasoning tokens prior to committing to an output or tool invocation.',
+          tradeoffs: [
+            'Dramatically improves multi-step arithmetic, logic, and planning accuracy.',
+            'Unconstrained CoT can rationalize flawed assumptions without external feedback.'
+          ],
+          failures: [
+            'Sycophantic or post-hoc rationalization that sounds plausible but is factually wrong.',
+            'Token budget exhaustion on verbose reasoning chains.'
+          ],
+          code: `const prompt = \`Solve step-by-step.\nShow intermediate invariants before final JSON.\`;\nconst response = await llm.complete(prompt);`
+        },
+        {
+          id: 'plan-exec',
+          territory: 'reasoning',
+          coord: 'B1',
+          title: 'Plan-and-Execute',
+          summary: 'Separates upfront task decomposition into a DAG from step-by-step execution.',
+          latency: 'High',
+          cost: 'Medium',
+          determinism: 'Med–High',
+          x: 155, y: 375,
+          mechanism: 'A planner model emits an explicit sequence or DAG of subtasks. Worker turns execute each subtask with narrower context, optionally triggering replanning when assumptions break.',
+          tradeoffs: [
+            'Reduces per-step token cost because workers only see their assigned subtask.',
+            'Rigid plans waste work if early discoveries invalidate later steps without replanning.'
+          ],
+          failures: [
+            'Stale plan drift when the environment changes mid-execution.',
+            'Over-granular task splitting that adds orchestration overhead.'
+          ],
+          code: `const plan = await planner.decompose(goal);\nfor (const step of plan.steps) {\n  const result = await worker.run(step, state);\n  if (result.needsReplan) plan = await planner.revise(plan, result);\n}`
+        },
+        {
+          id: 'tot',
+          territory: 'reasoning',
+          coord: 'B2',
+          title: 'Tree of Thoughts',
+          summary: 'Explores multiple candidate reasoning branches with heuristic scoring and backtracking.',
+          latency: 'Very High',
+          cost: 'High',
+          determinism: 'Medium',
+          x: 410, y: 335,
+          mechanism: 'Generates N candidate next steps at each depth, evaluates each branch with a value function or verifier, and searches via BFS/DFS/beam search.',
+          tradeoffs: [
+            'Excels at combinatorial search, theorem proving, and architecture exploration.',
+            'Multiplicative token cost makes it unsuitable for routine CRUD or low-latency tasks.'
+          ],
+          failures: [
+            'Weak heuristic evaluator prunes the winning branch early.',
+            'Branching factor explosion without strict depth/beam caps.'
+          ],
+          code: `let frontier = [initialState];\nfor (let d = 0; d < DEPTH; d++) {\n  const candidates = frontier.flatMap(s => expand(s, K));\n  frontier = topK(candidates, scoreBranch, BEAM_WIDTH);\n}`
+        },
+        {
+          id: 'reflexion',
+          territory: 'reasoning',
+          coord: 'A3',
+          title: 'Reflexion / Self-Critique',
+          summary: 'Evaluates outputs against tests or rubrics and feeds structured critique back into retry.',
+          latency: 'High',
+          cost: 'High',
+          determinism: 'High',
+          x: 270, y: 500,
+          mechanism: 'After generating a candidate artifact or action, a separate critic pass (ideally backed by deterministic linters/tests) produces actionable failure feedback stored in episodic memory for the next attempt.',
+          tradeoffs: [
+            'Substantially raises pass rates on code generation and structured synthesis.',
+            'Without external ground truth (tests, compilers), self-critique often plateaus or degrades.'
+          ],
+          failures: [
+            'Echo-chamber critique where the model praises its own buggy output.',
+            'Oscillating between two broken fixes across retries.'
+          ],
+          code: `const draft = await actor.generate(task, reflections);\nconst verdict = await verifyWithTests(draft);\nif (!verdict.passed) {\n  reflections.push(await critic.diagnose(draft, verdict.logs));\n}`
+        },
+
+        // Memory & Context Strata
+        {
+          id: 'working-ctx',
+          territory: 'memory',
+          coord: 'C1',
+          title: 'Working Context Window',
+          summary: 'The active token buffer holding system rules, conversation, tool results, and scratch state.',
+          latency: 'Instant',
+          cost: 'Linear/Turn',
+          determinism: 'High',
+          x: 700, y: 150,
+          mechanism: 'Every LLM call is stateless; the working context window is the exact serialized prompt payload sent at inference time. Managing what stays, compacts, or evicts determines agent coherence.',
+          tradeoffs: [
+            'Zero retrieval latency and full attention over recent tokens.',
+            'Filling the window degrades recall ("lost in the middle") and spikes per-turn cost.'
+          ],
+          failures: [
+            'Unbounded tool output (e.g. raw logs) blowing past token limits.',
+            'Important system constraints pushed out by sliding-window truncation.'
+          ],
+          code: `const payload = packContext({\n  system: pinnedInstructions,\n  summary: compactedHistory,\n  recent: turns.slice(-6),\n  budget: MAX_TOKENS\n});`
+        },
+        {
+          id: 'episodic-vec',
+          territory: 'memory',
+          coord: 'D1',
+          title: 'Episodic Vector Store',
+          summary: 'Stores past trajectories, user preferences, and outcomes indexed by semantic embeddings.',
+          latency: 'Low',
+          cost: 'Low',
+          determinism: 'Low–Med',
+          x: 965, y: 135,
+          mechanism: 'Embeds past episodes, decisions, or facts into dense vectors and retrieves top-K nearest neighbors at task start to prime the agent with relevant prior experience.',
+          tradeoffs: [
+            'Scales to millions of records without bloating the active context window.',
+            'Semantic similarity does not guarantee logical relevance or temporal freshness.'
+          ],
+          failures: [
+            'Retrieving outdated facts that contradict newer state.',
+            'Missing exact identifiers/symbols that dense embeddings blur.'
+          ],
+          code: `const memories = await vectorDb.query({\n  embedding: embed(task.query),\n  topK: 5,\n  filter: { tenantId, active: true }\n});`
+        },
+        {
+          id: 'knowledge-graph',
+          territory: 'memory',
+          coord: 'D2',
+          title: 'Semantic Knowledge Graph',
+          summary: 'Explicit entity-relation graph capturing dependencies, ownership, and structural invariants.',
+          latency: 'Low–Med',
+          cost: 'Low',
+          determinism: 'High',
+          x: 960, y: 310,
+          mechanism: 'Models domain concepts as typed nodes and edges (e.g., Service -> dependsOn -> DB), allowing deterministic multi-hop traversal that vector search cannot perform.',
+          tradeoffs: [
+            'Supports exact structural queries and provenance tracing.',
+            'Requires schema maintenance and extraction pipelines to stay current.'
+          ],
+          failures: [
+            'Stale edges after rapid codebase or org changes.',
+            'Entity resolution duplicates ("AuthSvc" vs "auth-service").'
+          ],
+          code: `MATCH (s:Service {name: $target})-[:DEPENDS_ON*1..3]->(dep)\nRETURN dep.name, dep.owner, dep.sla;`
+        },
+        {
+          id: 'checkpoints',
+          territory: 'memory',
+          coord: 'C2',
+          title: 'Scratchpad & Checkpoints',
+          summary: 'Durable external state snapshots enabling pause, resume, replay, and time-travel debugging.',
+          latency: 'Low',
+          cost: 'Negligible',
+          determinism: 'High',
+          x: 705, y: 315,
+          mechanism: 'Persists structured artifacts, todo graphs, and serialized agent state after each superstep so long-running workflows survive crashes, human approvals, or model handoffs.',
+          tradeoffs: [
+            'Essential for durable long-running tasks and human-in-the-loop pauses.',
+            'Requires careful versioning when agent schemas or tool signatures evolve.'
+          ],
+          failures: [
+            'Corrupted or partial state writes without atomic transactions.',
+            'Replaying side-effecting tool calls without idempotency keys.'
+          ],
+          code: `await store.saveCheckpoint(runId, {\n  step: idx,\n  state: structuredClone(agentState),\n  idempotencyKey: hash(step, args)\n});`
+        },
+
+        // Tools & Protocol Bridges
+        {
+          id: 'tool-calling',
+          territory: 'tools',
+          coord: 'B3',
+          title: 'Function / Tool Calling',
+          summary: 'Schema-constrained JSON invocation binding probabilistic LLM intent to deterministic code.',
+          latency: 'Low',
+          cost: 'Low',
+          determinism: 'High (Schema)',
+          x: 525, y: 690,
+          mechanism: 'The model emits a structured tool name and JSON arguments matching a declared schema. The host runtime validates, executes the real function, and returns the serialized result.',
+          tradeoffs: [
+            'Clean contract between natural-language reasoning and typed APIs.',
+            'Too many tool definitions (>30) confuse selection and consume prompt tokens.'
+          ],
+          failures: [
+            'Hallucinated enum values or missing required nested fields.',
+            'Silent failures when tools return unhelpful error strings instead of actionable recovery hints.'
+          ],
+          code: `const call = await llm.withTools([readFileSchema, runTestSchema]);\nconst validated = schema.parse(call.arguments);\nreturn await handlers[call.name](validated);`
+        },
+        {
+          id: 'mcp',
+          territory: 'tools',
+          coord: 'C3',
+          title: 'MCP (Model Context Protocol)',
+          summary: 'Standardized client-server protocol exposing tools, resources, and prompts across runtimes.',
+          latency: 'Low–Med',
+          cost: 'Low',
+          determinism: 'High',
+          x: 765, y: 660,
+          mechanism: 'Decouples agent hosts from external integrations via JSON-RPC over stdio or Streamable HTTP. Any compliant agent can discover and invoke capabilities from any MCP server.',
+          tradeoffs: [
+            'Eliminates N×M custom glue code between models and data sources.',
+            'Dynamic tool discovery requires strict trust boundaries and permission scoping.'
+          ],
+          failures: [
+            'Untrusted MCP server descriptions injecting hidden instructions (tool poisoning).',
+            'Unbounded resource reads flooding the host context.'
+          ],
+          code: `const { tools } = await mcpClient.listTools();\nconst res = await mcpClient.callTool({\n  name: 'query_metrics',\n  arguments: { window: '15m' }\n});`
+        },
+        {
+          id: 'sandbox',
+          territory: 'tools',
+          coord: 'C4',
+          title: 'Code Sandbox Executor',
+          summary: 'Isolated container or microVM where agents run generated code, tests, and shell commands.',
+          latency: 'Medium',
+          cost: 'Compute',
+          determinism: 'High',
+          x: 775, y: 845,
+          mechanism: 'Executes untrusted or agent-authored scripts inside ephemeral network/filesystem-restricted boundaries, returning stdout, stderr, exit codes, and diff artifacts.',
+          tradeoffs: [
+            'Turns the LLM from a text predictor into a verified empirical problem solver.',
+            'Container cold-starts and dependency caching add infrastructure complexity.'
+          ],
+          failures: [
+            'Sandbox escape or credential leakage via mounted environment variables.',
+            'Hung child processes exhausting CPU or disk quotas.'
+          ],
+          code: `const run = await sandbox.exec(cmd, {\n  timeoutMs: 30_000,\n  network: 'none',\n  readOnlyRoot: true\n});`
+        },
+        {
+          id: 'rag',
+          territory: 'tools',
+          coord: 'D3',
+          title: 'Retrieval (RAG) Pipeline',
+          summary: 'Hybrid lexical + semantic search with reranking to ground generation in verified corpora.',
+          latency: 'Low–Med',
+          cost: 'Low',
+          determinism: 'Medium',
+          x: 1015, y: 725,
+          mechanism: 'Combines BM25 keyword search with vector similarity, applies reciprocal rank fusion or cross-encoder reranking, and injects cited chunks into the prompt.',
+          tradeoffs: [
+            'Grounds responses in private or fast-changing docs without retraining.',
+            'Chunking boundaries can sever crucial surrounding context.'
+          ],
+          failures: [
+            'False confidence when retrieved chunks are topically similar but answer the wrong question.',
+            'Stale index lag after document updates.'
+          ],
+          code: `const hits = hybridSearch(query, { bm25Weight: 0.4, vecWeight: 0.6 });\nconst top = await reranker.score(query, hits, { limit: 6 });`
+        },
+
+        // Multi-Agent Topologies
+        {
+          id: 'supervisor',
+          territory: 'multi',
+          coord: 'E1',
+          title: 'Supervisor–Worker',
+          summary: 'Central orchestrator routes subtasks to specialized worker agents and synthesizes results.',
+          latency: 'High',
+          cost: 'High',
+          determinism: 'Med–High',
+          x: 1295, y: 175,
+          mechanism: 'A coordinator holds the global goal and delegates bounded work packets to domain-specific workers (e.g. Researcher, Coder, Reviewer), keeping worker contexts clean.',
+          tradeoffs: [
+            'Prevents prompt bloat by isolating specialist tools and instructions per worker.',
+            'The supervisor can become a serial bottleneck and single point of failure.'
+          ],
+          failures: [
+            'Lossy handoff summaries where the supervisor omits critical constraints.',
+            'Ping-pong delegation between two workers without convergence.'
+          ],
+          code: `const next = await supervisor.route(goal, workerReports);\nif (next.type === 'delegate') {\n  const out = await workers[next.agent].run(next.packet);\n  workerReports.push(out);\n}`
+        },
+        {
+          id: 'swarm',
+          territory: 'multi',
+          coord: 'F1',
+          title: 'Hierarchical Swarm',
+          summary: 'Tree of coordinators and parallel leaf agents scaling across large batches or repos.',
+          latency: 'High (Parallel)',
+          cost: 'Very High',
+          determinism: 'Medium',
+          x: 1545, y: 175,
+          mechanism: 'Decomposes massive workloads into independent shards executed concurrently by bounded worker pools, with mid-tier aggregators merging partial outcomes.',
+          tradeoffs: [
+            'Achieves high throughput on embarrassingly parallel audits or migrations.',
+            'Coordination overhead and merge conflicts spike if shards share mutable state.'
+          ],
+          failures: [
+            'Runaway token spend from recursive subagent spawning without depth/budget caps.',
+            'Conflicting edits when two leaf agents modify the same interface.'
+          ],
+          code: `const results = await mapWithLimit(shards, MAX_CONCURRENT, shard =>\n  spawnWorker({ task: shard, budget: PER_WORKER_CAP })\n);`
+        },
+        {
+          id: 'handoff',
+          territory: 'multi',
+          coord: 'E2',
+          title: 'Peer-to-Peer Handoff',
+          summary: 'Decentralized control transfer where an active agent hands the conversation to a peer.',
+          latency: 'Medium',
+          cost: 'Medium',
+          determinism: 'Medium',
+          x: 1295, y: 390,
+          mechanism: 'Agents expose handoff tools (e.g., transfer_to_billing). When invoked, the runtime swaps the active system prompt and toolset while preserving shared conversation state.',
+          tradeoffs: [
+            'Lower latency than routing every turn through a central supervisor.',
+            'Harder to enforce global invariants across arbitrary peer transitions.'
+          ],
+          failures: [
+            'Circular handoff loops (Agent A → Agent B → Agent A).',
+            'Context shock when the receiving agent misreads prior turns.'
+          ],
+          code: `if (toolCall.name === 'transfer_to_specialist') {\n  activeAgent = registry.get(toolCall.args.target);\n  return activeAgent.continue(sharedThread);\n}`
+        },
+        {
+          id: 'debate',
+          territory: 'multi',
+          coord: 'F2',
+          title: 'Debate & Consensus',
+          summary: 'Multiple agents argue competing hypotheses before a judge or voting rule selects one.',
+          latency: 'Very High',
+          cost: 'Very High',
+          determinism: 'Med–High',
+          x: 1545, y: 405,
+          mechanism: 'Spawns diverse or adversarial personas (e.g., Proposer vs. Red-Team Skeptic) over 1–3 rounds, then uses an adjudicator or majority vote to pick the most defensible answer.',
+          tradeoffs: [
+            'Surfaces blind spots and edge cases in high-stakes design or security reviews.',
+            '2×–5× cost multiplier; diminishes returns if agents share identical model biases.'
+          ],
+          failures: [
+            'Sycophantic convergence where the skeptic caves to a confident wrong argument.',
+            'Verbose deadlock without a clear tie-breaking rubric.'
+          ],
+          code: `const [a, b] = await Promise.all([proposer.run(q), skeptic.run(q)]);\nconst final = await judge.adjudicate({ q, a, b, rubric });`
+        },
+
+        // Guardrails & Failure Basins
+        {
+          id: 'context-rot',
+          territory: 'guardrails',
+          coord: 'E3',
+          title: 'Context Rot & Drift',
+          summary: 'Progressive degradation of instruction adherence as noisy observations accumulate.',
+          latency: 'Degrades',
+          cost: 'Spikes',
+          determinism: 'Low',
+          x: 1280, y: 725,
+          mechanism: 'As irrelevant logs, failed attempts, and stale tool outputs pile up, attention dilutes across the window—causing the agent to forget early constraints or repeat solved steps.',
+          tradeoffs: [
+            'Mitigated by structured compaction, subagent isolation, and pinned system reminders.',
+            'Over-aggressive summarization can accidentally erase exact file paths or error codes.'
+          ],
+          failures: [
+            'Quietly dropping user constraints midway through a long session.',
+            'Confusing an earlier failed hypothesis with verified current state.'
+          ],
+          code: `if (tokensUsed > COMPACT_THRESHOLD) {\n  history = await summarizePreserving({\n    history,\n    keepExact: ['filePaths', 'failingTests', 'userConstraints']\n  });\n}`
+        },
+        {
+          id: 'thrashing',
+          territory: 'guardrails',
+          coord: 'F3',
+          title: 'Infinite Loop / Thrashing',
+          summary: 'Repetitive tool calls or oscillating edits that burn budget without forward progress.',
+          latency: 'Unbounded',
+          cost: 'Runaway',
+          determinism: 'Low',
+          x: 1540, y: 725,
+          mechanism: 'Occurs when an agent lacks a termination signal, receives opaque errors, or toggles between two mutually incompatible states without detecting the cycle.',
+          tradeoffs: [
+            'Prevented by hard step/token budgets, cycle detection on (tool, args) hashes, and escalation.',
+            'Too-tight step caps can abort legitimate deep investigations prematurely.'
+          ],
+          failures: [
+            'Calling the exact same failing command 15 times in a row.',
+            'Silently exhausting API rate limits or user credits.'
+          ],
+          code: `const sig = hash(call.name, call.args);\nif (seenCalls.count(sig) >= 3) {\n  throw new LoopDetectedError('Repeated identical tool call');\n}`
+        },
+        {
+          id: 'injection',
+          territory: 'guardrails',
+          coord: 'E4',
+          title: 'Prompt Injection Surface',
+          summary: 'Untrusted external data (webpages, issues, files) attempting to hijack agent control flow.',
+          latency: 'Negligible',
+          cost: 'Low',
+          determinism: 'High (Policy)',
+          x: 1280, y: 900,
+          mechanism: 'Because LLMs process instructions and data in the same token stream, adversarial text inside retrieved documents or tool outputs can trick the agent into exfiltrating secrets or running destructive tools.',
+          tradeoffs: [
+            'Defense-in-depth: privilege separation, read-only defaults, and explicit user confirmation for side effects.',
+            'Pure prompt-based "ignore injections" instructions are never sufficient alone.'
+          ],
+          failures: [
+            'Blindly executing shell commands or URL fetches found inside a GitHub issue body.',
+            'Leaking env vars or private repo data via outbound HTTP tool calls.'
+          ],
+          code: `if (tool.hasExternalSideEffects && source.isUntrusted) {\n  await requireExplicitUserApproval(tool, args);\n}`
+        },
+        {
+          id: 'hitl',
+          territory: 'guardrails',
+          coord: 'F4',
+          title: 'Human-in-the-Loop Gate',
+          summary: 'Policy checkpoint pausing execution for human approval, clarification, or plan sign-off.',
+          latency: 'Human-bound',
+          cost: 'Low',
+          determinism: '100% (Gated)',
+          x: 1540, y: 900,
+          mechanism: 'Suspends the agent state at a checkpoint before irreversible actions (prod deploys, destructive writes, external emails) or high-ambiguity design forks, resuming only on explicit approval.',
+          tradeoffs: [
+            'Preserves user trust and bounds blast radius for autonomous workflows.',
+            'Excessive gating causes approval fatigue and turns autonomy into tedious babysitting.'
+          ],
+          failures: [
+            'Presenting vague approval prompts that hide the actual diff or blast radius.',
+            'Losing session state if the human responds hours later without durable checkpoints.'
+          ],
+          code: `if (action.risk === 'high') {\n  const decision = await pauseForApproval({ action, diff, blastRadius });\n  if (!decision.approved) return abortOrReplan(decision.feedback);\n}`
+        }
+      ];
+
+      const EDGES = [
+        { from: 'cot', to: 'react', label: 'grounds' },
+        { from: 'react', to: 'plan-exec', label: 'scales to' },
+        { from: 'cot', to: 'tot', label: 'branches' },
+        { from: 'react', to: 'reflexion', label: 'critiques' },
+        { from: 'react', to: 'working-ctx', label: 'appends' },
+        { from: 'working-ctx', to: 'episodic-vec', label: 'queries' },
+        { from: 'working-ctx', to: 'checkpoints', label: 'persists' },
+        { from: 'episodic-vec', to: 'knowledge-graph', label: 'enriches' },
+        { from: 'react', to: 'tool-calling', label: 'invokes' },
+        { from: 'tool-calling', to: 'mcp', label: 'standardizes' },
+        { from: 'mcp', to: 'sandbox', label: 'executes in' },
+        { from: 'working-ctx', to: 'rag', label: 'hydrates' },
+        { from: 'rag', to: 'episodic-vec', label: 'retrieves' },
+        { from: 'rag', to: 'knowledge-graph', label: 'traverses' },
+        { from: 'plan-exec', to: 'supervisor', label: 'delegates' },
+        { from: 'supervisor', to: 'swarm', label: 'fans out' },
+        { from: 'supervisor', to: 'handoff', label: 'routes' },
+        { from: 'handoff', to: 'checkpoints', label: 'shares' },
+        { from: 'tot', to: 'debate', label: 'parallelizes' },
+        { from: 'working-ctx', to: 'context-rot', label: 'risks' },
+        { from: 'react', to: 'thrashing', label: 'risks' },
+        { from: 'mcp', to: 'injection', label: 'exposes' },
+        { from: 'rag', to: 'injection', label: 'exposes' },
+        { from: 'thrashing', to: 'hitl', label: 'escalates' },
+        { from: 'injection', to: 'hitl', label: 'mitigated by' },
+        { from: 'supervisor', to: 'hitl', label: 'gates' },
+        { from: 'hitl', to: 'reflexion', label: 'steers' }
+      ];
+
+      const ROUTES = [
+        {
+          id: 'react-mcp',
+          name: 'Route 1: ReAct → MCP Sandbox Cycle',
+          steps: [
+            { nodeId: 'react', note: 'Agent reasons over user goal and decides a file/test check is needed.' },
+            { nodeId: 'working-ctx', note: 'Working context packs pinned rules + recent turns within token budget.' },
+            { nodeId: 'tool-calling', note: 'LLM emits schema-validated JSON arguments for the target capability.' },
+            { nodeId: 'mcp', note: 'MCP client routes the JSON-RPC call to the authorized tool server.' },
+            { nodeId: 'sandbox', note: 'Code executes in an isolated microVM; stdout/exit code return as Observation.' },
+            { nodeId: 'react', note: 'Observation enters the next ReAct turn to verify or conclude.' }
+          ]
+        },
+        {
+          id: 'supervisor-handoff',
+          name: 'Route 2: Plan → Supervisor → Gated Handoff',
+          steps: [
+            { nodeId: 'plan-exec', note: 'Planner decomposes the goal into a dependency-ordered task DAG.' },
+            { nodeId: 'supervisor', note: 'Supervisor assigns Shard A to a specialist worker with minimal context.' },
+            { nodeId: 'handoff', note: 'Worker transfers control to a domain peer for final verification.' },
+            { nodeId: 'checkpoints', note: 'Structured state and artifacts are persisted to a durable checkpoint.' },
+            { nodeId: 'hitl', note: 'High-impact action pauses at the Human-in-the-Loop gate for sign-off.' }
+          ]
+        },
+        {
+          id: 'rag-memory',
+          name: 'Route 3: Hybrid RAG & Memory Grounding',
+          steps: [
+            { nodeId: 'working-ctx', note: 'Query intent is extracted from the active context window.' },
+            { nodeId: 'rag', note: 'Hybrid BM25 + dense search gathers candidate passages and reranks.' },
+            { nodeId: 'episodic-vec', note: 'Episodic store surfaces relevant past trajectories and user preferences.' },
+            { nodeId: 'knowledge-graph', note: 'Knowledge graph resolves exact multi-hop service dependencies.' },
+            { nodeId: 'reflexion', note: 'Self-critique verifies citations before emitting the final response.' }
+          ]
+        },
+        {
+          id: 'failure-recovery',
+          name: 'Route 4: Thrashing & Injection Recovery',
+          steps: [
+            { nodeId: 'react', note: 'Agent enters an iterative debugging loop on a failing integration.' },
+            { nodeId: 'thrashing', note: 'Identical tool call signature repeats 3×; loop detector trips.' },
+            { nodeId: 'context-rot', note: 'Verbose error logs have diluted early constraints; compaction triggers.' },
+            { nodeId: 'hitl', note: 'System escalates to Human-in-the-Loop with diagnostic summary.' },
+            { nodeId: 'reflexion', note: 'Human steer + clean reflection resets the next attempt.' }
+          ]
+        }
+      ];
+
+      // State
+      const state = {
+        scale: 0.72,
+        panX: 40,
+        panY: 36,
+        selectedId: null,
+        activeTerritory: 'all',
+        searchQuery: '',
+        compareIds: [],
+        activeRouteId: ROUTES[0].id,
+        traceIndex: -1,
+        traceTimer: null
+      };
+
+      // DOM refs
+      const mapViewport = document.getElementById('mapViewport');
+      const mapStage = document.getElementById('mapStage');
+      const mapSvg = document.getElementById('mapSvg');
+      const minimapSvg = document.getElementById('minimapSvg');
+      const minimapViewport = document.getElementById('minimapViewport');
+      const minimap = document.getElementById('minimap');
+      const territoryLabels = document.getElementById('territoryLabels');
+      const nodeLayer = document.getElementById('nodeLayer');
+      const filterStrip = document.getElementById('filterStrip');
+      const searchInput = document.getElementById('searchInput');
+      const emptyBanner = document.getElementById('emptyBanner');
+      const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+      const zoomReadout = document.getElementById('zoomReadout');
+
+      const inspector = document.getElementById('inspector');
+      const inspBadge = document.getElementById('inspBadge');
+      const inspCoord = document.getElementById('inspCoord');
+      const inspTitle = document.getElementById('inspTitle');
+      const inspLatency = document.getElementById('inspLatency');
+      const inspCost = document.getElementById('inspCost');
+      const inspDeterminism = document.getElementById('inspDeterminism');
+      const inspMechanism = document.getElementById('inspMechanism');
+      const inspTradeoffs = document.getElementById('inspTradeoffs');
+      const inspFailures = document.getElementById('inspFailures');
+      const inspCode = document.getElementById('inspCode');
+      const inspNeighbors = document.getElementById('inspNeighbors');
+      const inspCompareBtn = document.getElementById('inspCompareBtn');
+      const inspCenterBtn = document.getElementById('inspCenterBtn');
+      const inspCloseBtn = document.getElementById('inspCloseBtn');
+      const copyCodeBtn = document.getElementById('copyCodeBtn');
+
+      const compareOpenBtn = document.getElementById('compareOpenBtn');
+      const compareCount = document.getElementById('compareCount');
+      const compareModal = document.getElementById('compareModal');
+      const compareBody = document.getElementById('compareBody');
+      const compareCloseBtn = document.getElementById('compareCloseBtn');
+
+      const legendBtn = document.getElementById('legendBtn');
+      const legendModal = document.getElementById('legendModal');
+      const legendGrid = document.getElementById('legendGrid');
+      const legendCloseBtn = document.getElementById('legendCloseBtn');
+
+      const routeSelect = document.getElementById('routeSelect');
+      const tracePlayBtn = document.getElementById('tracePlayBtn');
+      const tracePrevBtn = document.getElementById('tracePrevBtn');
+      const traceNextBtn = document.getElementById('traceNextBtn');
+      const traceStopBtn = document.getElementById('traceStopBtn');
+      const tracerSteps = document.getElementById('tracerSteps');
+      const tracerCaption = document.getElementById('tracerCaption');
+
+      const nodeMap = new Map(NODES.map(n => [n.id, n]));
+      const territoryMap = new Map(TERRITORIES.map(t => [t.id, t]));
+
+      function svgEl(tag, attrs = {}) {
+        const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+        for (const [k, v] of Object.entries(attrs)) {
+          el.setAttribute(k, String(v));
+        }
+        return el;
+      }
+
+      // Render Territory Contours, Edges, and Minimap
+      function renderSvgLayers() {
+        mapSvg.innerHTML = '';
+        minimapSvg.innerHTML = '';
+
+        const defs = svgEl('defs');
+        const marker = svgEl('marker', {
+          id: 'arrow-default',
+          viewBox: '0 0 10 10',
+          refX: '8',
+          refY: '5',
+          markerWidth: '6',
+          markerHeight: '6',
+          orient: 'auto-start-reverse'
+        });
+        marker.appendChild(svgEl('path', { d: 'M 0 1.5 L 8 5 L 0 8.5 z', fill: '#64748B' }));
+        defs.appendChild(marker);
+
+        const markerActive = svgEl('marker', {
+          id: 'arrow-signal',
+          viewBox: '0 0 10 10',
+          refX: '8',
+          refY: '5',
+          markerWidth: '7',
+          markerHeight: '7',
+          orient: 'auto-start-reverse'
+        });
+        markerActive.appendChild(svgEl('path', { d: 'M 0 1.5 L 8 5 L 0 8.5 z', fill: '#D64000' }));
+        defs.appendChild(markerActive);
+        mapSvg.appendChild(defs);
+
+        // Survey coordinate gridlines inside SVG map
+        const gridGroup = svgEl('g', { stroke: '#DCE3EA', 'stroke-width': '1' });
+        for (let gx = 0; gx <= 1800; gx += 300) {
+          gridGroup.appendChild(svgEl('line', { x1: gx, y1: 0, x2: gx, y2: 1120 }));
+        }
+        for (let gy = 0; gy <= 1120; gy += 280) {
+          gridGroup.appendChild(svgEl('line', { x1: 0, y1: gy, x2: 1800, y2: gy }));
+        }
+        mapSvg.appendChild(gridGroup);
+
+        // Topographic contour rings per territory
+        TERRITORIES.forEach(t => {
+          const { cx, cy, rx, ry } = t.contour;
+          [1, 0.78, 0.54].forEach((factor, idx) => {
+            const ring = svgEl('ellipse', {
+              cx, cy,
+              rx: rx * factor,
+              ry: ry * factor,
+              fill: idx === 0 ? t.bg : 'none',
+              'fill-opacity': idx === 0 ? '0.62' : '0',
+              stroke: t.color,
+              'stroke-opacity': idx === 0 ? '0.28' : '0.14',
+              'stroke-width': idx === 0 ? '1.5' : '1',
+              'stroke-dasharray': idx === 2 ? '5 4' : 'none'
+            });
+            mapSvg.appendChild(ring);
+          });
+
+          // Minimap territory dot
+          minimapSvg.appendChild(svgEl('ellipse', {
+            cx, cy, rx, ry,
+            fill: t.bg,
+            stroke: t.color,
+            'stroke-width': '16',
+            'stroke-opacity': '0.45'
+          }));
+
+          // Territory label
+          const lbl = document.createElement('div');
+          lbl.className = 'territory-label';
+          lbl.style.left = `${cx - rx + 26}px`;
+          lbl.style.top = `${cy - ry + 18}px`;
+          lbl.style.color = t.color;
+          lbl.innerHTML = `<span class="territory-coord">${t.coord}</span><span>${t.name}</span>`;
+          territoryLabels.appendChild(lbl);
+        });
+
+        // Directed Edges
+        EDGES.forEach((e, idx) => {
+          const a = nodeMap.get(e.from);
+          const b = nodeMap.get(e.to);
+          if (!a || !b) return;
+          const x1 = a.x + 102;
+          const y1 = a.y + 42;
+          const x2 = b.x + 102;
+          const y2 = b.y + 42;
+          const mx = (x1 + x2) / 2;
+          const my = (y1 + y2) / 2;
+          const dx = x2 - x1;
+          const dy = y2 - y1;
+          // Gentle curve offset perpendicular to segment
+          const cx = mx - dy * 0.1;
+          const cy = my + dx * 0.1;
+
+          const path = svgEl('path', {
+            id: `edge-${idx}`,
+            class: 'edge-path',
+            d: `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`,
+            'marker-end': 'url(#arrow-default)'
+          });
+          path.dataset.from = e.from;
+          path.dataset.to = e.to;
+          mapSvg.appendChild(path);
+
+          const text = svgEl('text', {
+            id: `edge-lbl-${idx}`,
+            class: 'edge-label',
+            x: cx,
+            y: cy - 4,
+            'text-anchor': 'middle'
+          });
+          text.textContent = e.label;
+          text.dataset.from = e.from;
+          text.dataset.to = e.to;
+          mapSvg.appendChild(text);
+        });
+
+        // Animated signal beacon
+        const beacon = svgEl('circle', {
+          id: 'signalBeacon',
+          r: '7',
+          fill: '#D64000',
+          stroke: '#FFFFFF',
+          'stroke-width': '2.5',
+          style: 'display:none;'
+        });
+        mapSvg.appendChild(beacon);
+      }
+
+      // Render Territory Filter Pills & Legend
+      function renderFiltersAndLegend() {
+        filterStrip.innerHTML = '';
+        legendGrid.innerHTML = '';
+
+        const allBtn = document.createElement('button');
+        allBtn.className = 'filter-pill';
+        allBtn.type = 'button';
+        allBtn.textContent = 'All Territories (20)';
+        allBtn.setAttribute('aria-pressed', 'true');
+        allBtn.dataset.territory = 'all';
+        allBtn.addEventListener('click', () => setTerritoryFilter('all'));
+        filterStrip.appendChild(allBtn);
+
+        TERRITORIES.forEach(t => {
+          const count = NODES.filter(n => n.territory === t.id).length;
+          const btn = document.createElement('button');
+          btn.className = 'filter-pill';
+          btn.type = 'button';
+          btn.dataset.territory = t.id;
+          btn.setAttribute('aria-pressed', 'false');
+          btn.innerHTML = `<span class="pill-dot" style="background:${t.color};"></span><span>${t.name} (${count})</span>`;
+          btn.addEventListener('click', () => setTerritoryFilter(t.id));
+          filterStrip.appendChild(btn);
+
+          const item = document.createElement('div');
+          item.className = 'legend-item';
+          item.innerHTML = `
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span class="pill-dot" style="background:${t.color};"></span>
+              <strong style="font-size:13px;">${t.name}</strong>
+            </div>
+            <div style="font-size:12px;color:var(--ink-secondary);">${t.description}</div>
+          `;
+          legendGrid.appendChild(item);
+        });
+      }
+
+      // Render Nodes
+      function renderNodes() {
+        nodeLayer.innerHTML = '';
+        NODES.forEach(n => {
+          const t = territoryMap.get(n.territory);
+          const el = document.createElement('button');
+          el.type = 'button';
+          el.className = 'atlas-node';
+          el.id = `node-${n.id}`;
+          el.style.left = `${n.x}px`;
+          el.style.top = `${n.y}px`;
+          el.innerHTML = `
+            <div class="node-head">
+              <span class="node-badge" style="background:${t.bg};color:${t.color};">${t.name.split(' ')[0]}</span>
+              <span class="node-coord">${n.coord}</span>
+            </div>
+            <h3 class="node-title">${n.title}</h3>
+            <p class="node-sub">${n.summary}</p>
+          `;
+          el.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            selectNode(n.id);
+          });
+          nodeLayer.appendChild(el);
+
+          // Minimap node marker
+          minimapSvg.appendChild(svgEl('rect', {
+            x: n.x, y: n.y, width: 160, height: 64, rx: 14,
+            fill: t.color, 'fill-opacity': '0.75'
+          }));
+        });
+      }
+
+      // Viewport Transform & Fit
+      function applyTransform() {
+        mapStage.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.scale})`;
+        zoomReadout.textContent = `${Math.round(state.scale * 100)}%`;
+
+        const rect = mapViewport.getBoundingClientRect();
+        const miniW = 164;
+        const miniH = 102;
+        const scaleX = miniW / 1800;
+        const scaleY = miniH / 1120;
+
+        const vx = (-state.panX / state.scale) * scaleX;
+        const vy = (-state.panY / state.scale) * scaleY;
+        const vw = (rect.width / state.scale) * scaleX;
+        const vh = (rect.height / state.scale) * scaleY;
+
+        minimapViewport.style.left = `${Math.max(0, vx)}px`;
+        minimapViewport.style.top = `${Math.max(0, vy)}px`;
+        minimapViewport.style.width = `${Math.min(miniW, vw)}px`;
+        minimapViewport.style.height = `${Math.min(miniH, vh)}px`;
+      }
+
+      function fitToViewport() {
+        const rect = mapViewport.getBoundingClientRect();
+        const padX = 32;
+        const padY = 90;
+        const scaleX = (rect.width - padX) / 1800;
+        const scaleY = (rect.height - padY) / 1120;
+        state.scale = Math.max(0.32, Math.min(1.05, Math.min(scaleX, scaleY)));
+        state.panX = (rect.width - 1800 * state.scale) / 2;
+        state.panY = Math.max(12, (rect.height - 1120 * state.scale) / 2 - 20);
+        applyTransform();
+      }
+
+      function centerOnNode(nodeId) {
+        const n = nodeMap.get(nodeId);
+        if (!n) return;
+        const rect = mapViewport.getBoundingClientRect();
+        const targetScale = Math.max(state.scale, 0.85);
+        state.scale = targetScale;
+        state.panX = rect.width / 2 - (n.x + 102) * targetScale;
+        state.panY = rect.height / 2 - (n.y + 42) * targetScale - 24;
+        applyTransform();
+      }
+
+      // Filtering & Highlighting
+      function updateHighlights() {
+        const q = state.searchQuery.trim().toLowerCase();
+        const terr = state.activeTerritory;
+        const activeRoute = ROUTES.find(r => r.id === state.activeRouteId);
+        const tracedNodeId = (state.traceIndex >= 0 && activeRoute)
+          ? activeRoute.steps[state.traceIndex].nodeId
+          : null;
+
+        let matchCount = 0;
+
+        NODES.forEach(n => {
+          const el = document.getElementById(`node-${n.id}`);
+          const matchesTerr = terr === 'all' || n.territory === terr;
+          const haystack = `${n.title} ${n.summary} ${n.mechanism} ${n.failures.join(' ')}`.toLowerCase();
+          const matchesQuery = !q || haystack.includes(q);
+          const isMatch = matchesTerr && matchesQuery;
+
+          if (isMatch) matchCount++;
+
+          el.classList.toggle('is-dimmed', !isMatch);
+          el.classList.toggle('is-selected', n.id === state.selectedId);
+          el.classList.toggle('is-traced', n.id === tracedNodeId);
+          el.classList.toggle('is-compared', state.compareIds.includes(n.id));
+        });
+
+        emptyBanner.classList.toggle('is-visible', matchCount === 0);
+
+        // Edge highlights
+        const tracePairs = new Set();
+        if (state.traceIndex > 0 && activeRoute) {
+          for (let i = 0; i < state.traceIndex; i++) {
+            tracePairs.add(`${activeRoute.steps[i].nodeId}->${activeRoute.steps[i + 1].nodeId}`);
+          }
+        }
+
+        EDGES.forEach((e, idx) => {
+          const path = document.getElementById(`edge-${idx}`);
+          const lbl = document.getElementById(`edge-lbl-${idx}`);
+          const isConnectedToSelected = state.selectedId && (e.from === state.selectedId || e.to === state.selectedId);
+          const isTraced = tracePairs.has(`${e.from}->${e.to}`) || tracePairs.has(`${e.to}->${e.from}`);
+
+          path.classList.toggle('is-connected', Boolean(isConnectedToSelected));
+          path.classList.toggle('is-traced', isTraced);
+          path.setAttribute('marker-end', isTraced ? 'url(#arrow-signal)' : 'url(#arrow-default)');
+
+          const hasFilter = terr !== 'all' || q.length > 0;
+          path.classList.toggle('is-dimmed', hasFilter && !isConnectedToSelected && !isTraced);
+          lbl.classList.toggle('is-visible', Boolean(isConnectedToSelected || isTraced));
+        });
+      }
+
+      function setTerritoryFilter(terrId) {
+        state.activeTerritory = terrId;
+        filterStrip.querySelectorAll('.filter-pill').forEach(btn => {
+          btn.setAttribute('aria-pressed', btn.dataset.territory === terrId ? 'true' : 'false');
+        });
+        updateHighlights();
+      }
+
+      // Inspector
+      function selectNode(nodeId) {
+        const n = nodeMap.get(nodeId);
+        if (!n) return;
+        state.selectedId = nodeId;
+        const t = territoryMap.get(n.territory);
+
+        inspBadge.textContent = t.name;
+        inspBadge.style.background = t.bg;
+        inspBadge.style.color = t.color;
+        inspCoord.textContent = n.coord;
+        inspTitle.textContent = n.title;
+        inspLatency.textContent = n.latency;
+        inspCost.textContent = n.cost;
+        inspDeterminism.textContent = n.determinism;
+        inspMechanism.textContent = n.mechanism;
+
+        inspTradeoffs.innerHTML = n.tradeoffs.map(item => `<li>${item}</li>`).join('');
+        inspFailures.innerHTML = n.failures.map(item => `<li>${item}</li>`).join('');
+        inspCode.textContent = n.code;
+
+        const connected = EDGES
+          .filter(e => e.from === n.id || e.to === n.id)
+          .map(e => {
+            const otherId = e.from === n.id ? e.to : e.from;
+            const dir = e.from === n.id ? '→' : '←';
+            return { other: nodeMap.get(otherId), dir, label: e.label };
+          })
+          .filter(x => x.other);
+
+        inspNeighbors.innerHTML = '';
+        connected.forEach(({ other, dir, label }) => {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'neighbor-chip';
+          chip.textContent = `${dir} ${other.title} (${label})`;
+          chip.addEventListener('click', () => {
+            selectNode(other.id);
+            centerOnNode(other.id);
+          });
+          inspNeighbors.appendChild(chip);
+        });
+
+        updateCompareButton();
+        inspector.classList.remove('is-closed');
+        updateHighlights();
+      }
+
+      function closeInspector() {
+        state.selectedId = null;
+        inspector.classList.add('is-closed');
+        updateHighlights();
+      }
+
+      // Compare
+      function updateCompareButton() {
+        compareCount.textContent = String(state.compareIds.length);
+        compareOpenBtn.disabled = state.compareIds.length < 2;
+        if (state.selectedId) {
+          const isPinned = state.compareIds.includes(state.selectedId);
+          inspCompareBtn.textContent = isPinned ? 'Pinned in Compare' : 'Pin to Compare';
+          inspCompareBtn.classList.toggle('btn-active', isPinned);
+        }
+      }
+
+      function toggleCompare(nodeId) {
+        const idx = state.compareIds.indexOf(nodeId);
+        if (idx >= 0) {
+          state.compareIds.splice(idx, 1);
+        } else {
+          if (state.compareIds.length >= 2) state.compareIds.shift();
+          state.compareIds.push(nodeId);
+        }
+        updateCompareButton();
+        updateHighlights();
+      }
+
+      function openCompareModal() {
+        if (state.compareIds.length < 2) return;
+        const [a, b] = state.compareIds.map(id => nodeMap.get(id));
+        const ta = territoryMap.get(a.territory);
+        const tb = territoryMap.get(b.territory);
+        compareBody.innerHTML = `
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Dimension</th>
+                <th><span style="color:${ta.color};">${a.title}</span> (${a.coord})</th>
+                <th><span style="color:${tb.color};">${b.title}</span> (${b.coord})</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th>Territory</th><td>${ta.name}</td><td>${tb.name}</td></tr>
+              <tr><th>Latency</th><td>${a.latency}</td><td>${b.latency}</td></tr>
+              <tr><th>Token / Compute Cost</th><td>${a.cost}</td><td>${b.cost}</td></tr>
+              <tr><th>Determinism</th><td>${a.determinism}</td><td>${b.determinism}</td></tr>
+              <tr><th>Mechanism</th><td>${a.mechanism}</td><td>${b.mechanism}</td></tr>
+              <tr><th>Key Trade-off</th><td>${a.tradeoffs[0]}</td><td>${b.tradeoffs[0]}</td></tr>
+              <tr><th>Primary Risk</th><td>${a.failures[0]}</td><td>${b.failures[0]}</td></tr>
+            </tbody>
+          </table>
+        `;
+        compareModal.classList.add('is-open');
+      }
+
+      // Execution Route Tracer
+      function renderRouteOptions() {
+        routeSelect.innerHTML = ROUTES.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+        renderRouteSteps();
+      }
+
+      function renderRouteSteps() {
+        const route = ROUTES.find(r => r.id === state.activeRouteId);
+        if (!route) return;
+        tracerSteps.innerHTML = '';
+        route.steps.forEach((step, idx) => {
+          const n = nodeMap.get(step.nodeId);
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'step-chip';
+          if (idx === state.traceIndex) chip.classList.add('is-active');
+          chip.innerHTML = `<span class="step-num">${idx + 1}.</span><span>${n ? n.title : step.nodeId}</span>`;
+          chip.addEventListener('click', () => {
+            stopTracePlayback();
+            setTraceStep(idx);
+          });
+          tracerSteps.appendChild(chip);
+        });
+      }
+
+      function setTraceStep(idx) {
+        const route = ROUTES.find(r => r.id === state.activeRouteId);
+        if (!route) return;
+        state.traceIndex = idx;
+        renderRouteSteps();
+        updateHighlights();
+
+        const beacon = document.getElementById('signalBeacon');
+        if (idx < 0) {
+          beacon.style.display = 'none';
+          tracerCaption.innerHTML = `<strong>Route ready:</strong> Press Play Trace or click any step to animate live signal flow across the atlas.`;
+          return;
+        }
+
+        const step = route.steps[idx];
+        const n = nodeMap.get(step.nodeId);
+        if (n) {
+          beacon.setAttribute('cx', String(n.x + 102));
+          beacon.setAttribute('cy', String(n.y + 42));
+          beacon.style.display = 'block';
+          tracerCaption.innerHTML = `<strong>Step ${idx + 1}/${route.steps.length} · ${n.title}:</strong> ${step.note}`;
+        }
+      }
+
+      function stopTracePlayback() {
+        if (state.traceTimer) {
+          clearInterval(state.traceTimer);
+          state.traceTimer = null;
+        }
+        tracePlayBtn.textContent = 'Play Trace';
+      }
+
+      function toggleTracePlayback() {
+        if (state.traceTimer) {
+          stopTracePlayback();
+          return;
+        }
+        const route = ROUTES.find(r => r.id === state.activeRouteId);
+        if (!route) return;
+        if (state.traceIndex < 0 || state.traceIndex >= route.steps.length - 1) {
+          setTraceStep(0);
+        }
+        tracePlayBtn.textContent = 'Pause';
+        state.traceTimer = setInterval(() => {
+          const r = ROUTES.find(x => x.id === state.activeRouteId);
+          if (!r) return;
+          const next = state.traceIndex + 1;
+          if (next >= r.steps.length) {
+            stopTracePlayback();
+          } else {
+            setTraceStep(next);
+          }
+        }, 1600);
+      }
+
+      // Pan & Zoom Events
+      let isPanning = false;
+      let startX = 0;
+      let startY = 0;
+
+      mapViewport.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.atlas-node, .map-controls, .minimap, .tracer-dock, .empty-banner')) return;
+        isPanning = true;
+        startX = e.clientX - state.panX;
+        startY = e.clientY - state.panY;
+        mapViewport.classList.add('is-panning');
+        mapViewport.setPointerCapture(e.pointerId);
+      });
+
+      mapViewport.addEventListener('pointermove', (e) => {
+        if (!isPanning) return;
+        state.panX = e.clientX - startX;
+        state.panY = e.clientY - startY;
+        applyTransform();
+      });
+
+      mapViewport.addEventListener('pointerup', (e) => {
+        if (!isPanning) return;
+        isPanning = false;
+        mapViewport.classList.remove('is-panning');
+        if (mapViewport.hasPointerCapture(e.pointerId)) {
+          mapViewport.releasePointerCapture(e.pointerId);
+        }
+      });
+
+      mapViewport.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const rect = mapViewport.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const factor = e.deltaY < 0 ? 1.1 : 0.91;
+        const nextScale = Math.max(0.32, Math.min(1.6, state.scale * factor));
+        const ratio = nextScale / state.scale;
+        state.panX = mouseX - (mouseX - state.panX) * ratio;
+        state.panY = mouseY - (mouseY - state.panY) * ratio;
+        state.scale = nextScale;
+        applyTransform();
+      }, { passive: false });
+
+      minimap.addEventListener('click', (e) => {
+        const mRect = minimap.getBoundingClientRect();
+        const vRect = mapViewport.getBoundingClientRect();
+        const worldX = ((e.clientX - mRect.left) / mRect.width) * 1800;
+        const worldY = ((e.clientY - mRect.top) / mRect.height) * 1120;
+        state.panX = vRect.width / 2 - worldX * state.scale;
+        state.panY = vRect.height / 2 - worldY * state.scale;
+        applyTransform();
+      });
+
+      // UI Wiring
+      document.getElementById('zoomInBtn').addEventListener('click', () => {
+        state.scale = Math.min(1.6, state.scale * 1.15);
+        applyTransform();
+      });
+      document.getElementById('zoomOutBtn').addEventListener('click', () => {
+        state.scale = Math.max(0.32, state.scale * 0.87);
+        applyTransform();
+      });
+      document.getElementById('fitBtn').addEventListener('click', fitToViewport);
+
+      searchInput.addEventListener('input', () => {
+        state.searchQuery = searchInput.value;
+        updateHighlights();
+      });
+
+      clearFiltersBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        state.searchQuery = '';
+        setTerritoryFilter('all');
+      });
+
+      inspCloseBtn.addEventListener('click', closeInspector);
+      inspCenterBtn.addEventListener('click', () => {
+        if (state.selectedId) centerOnNode(state.selectedId);
+      });
+      inspCompareBtn.addEventListener('click', () => {
+        if (state.selectedId) toggleCompare(state.selectedId);
+      });
+      copyCodeBtn.addEventListener('click', () => {
+        navigator.clipboard?.writeText(inspCode.textContent || '');
+        copyCodeBtn.textContent = 'Copied';
+        setTimeout(() => { copyCodeBtn.textContent = 'Copy'; }, 1200);
+      });
+
+      compareOpenBtn.addEventListener('click', openCompareModal);
+      compareCloseBtn.addEventListener('click', () => compareModal.classList.remove('is-open'));
+      compareModal.addEventListener('click', (e) => {
+        if (e.target === compareModal) compareModal.classList.remove('is-open');
+      });
+
+      legendBtn.addEventListener('click', () => legendModal.classList.add('is-open'));
+      legendCloseBtn.addEventListener('click', () => legendModal.classList.remove('is-open'));
+      legendModal.addEventListener('click', (e) => {
+        if (e.target === legendModal) legendModal.classList.remove('is-open');
+      });
+
+      routeSelect.addEventListener('change', () => {
+        stopTracePlayback();
+        state.activeRouteId = routeSelect.value;
+        setTraceStep(0);
+      });
+      tracePlayBtn.addEventListener('click', toggleTracePlayback);
+      tracePrevBtn.addEventListener('click', () => {
+        stopTracePlayback();
+        setTraceStep(Math.max(0, state.traceIndex - 1));
+      });
+      traceNextBtn.addEventListener('click', () => {
+        stopTracePlayback();
+        const route = ROUTES.find(r => r.id === state.activeRouteId);
+        if (!route) return;
+        setTraceStep(Math.min(route.steps.length - 1, state.traceIndex + 1));
+      });
+      traceStopBtn.addEventListener('click', () => {
+        stopTracePlayback();
+        setTraceStep(-1);
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === '/' && document.activeElement !== searchInput) {
+          e.preventDefault();
+          searchInput.focus();
+        } else if (e.key === 'Escape') {
+          compareModal.classList.remove('is-open');
+          legendModal.classList.remove('is-open');
+          if (document.activeElement === searchInput) searchInput.blur();
+          else closeInspector();
+        }
+      });
+
+      window.addEventListener('resize', applyTransform);
+
+      // Initialize
+      renderSvgLayers();
+      renderFiltersAndLegend();
+      renderNodes();
+      renderRouteOptions();
+      fitToViewport();
+      updateHighlights();
+    })();
+  </script>
+</body>
+</html>
